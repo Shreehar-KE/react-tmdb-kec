@@ -15,8 +15,13 @@ const API_OPTIONS = {
 function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [moviesList, setMoviesList] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchMovies = async () => {
+    setIsLoading(true);
+    setErrorMessage("");
+
     try {
       const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
       const response = await fetch(endpoint, API_OPTIONS);
@@ -29,12 +34,17 @@ function App() {
       
       if(data.Response === "False") {
         setErrorMessage(data.Error || "Failed to fetch movies");
+        setMoviesList([]);
+        return;
       }
+      setMoviesList(data.results || []);
       
       // console.log(data);
     } catch (error) {
       console.error(`Error fetching movie: ${error}`);
       setErrorMessage("Error fetching movies. Please try again later.")
+    } finally {
+      setIsLoading(false);
     }
   };
 
