@@ -20,39 +20,41 @@ function App() {
   const [moviesList, setMoviesList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchMovies = async () => {
+  const fetchMovies = async (query = "") => {
     setIsLoading(true);
     setErrorMessage("");
 
     try {
-      const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+      const endpoint = query
+        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
+        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
       const response = await fetch(endpoint, API_OPTIONS);
-      
+
       if (!response) {
         throw new Error("Failed to fetch movies");
       }
-      
+
       const data = await response.json();
-      
-      if(data.Response === "False") {
+
+      if (data.Response === "False") {
         setErrorMessage(data.Error || "Failed to fetch movies");
         setMoviesList([]);
         return;
       }
       setMoviesList(data.results || []);
-      
+
       console.log(data);
     } catch (error) {
       console.error(`Error fetching movie: ${error}`);
-      setErrorMessage("Error fetching movies. Please try again later.")
+      setErrorMessage("Error fetching movies. Please try again later.");
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchMovies();
-  }, []);
+    fetchMovies(searchTerm);
+  }, [searchTerm]);
 
   return (
     <main>
@@ -68,23 +70,17 @@ function App() {
         </header>
         <section className="all-movies">
           <h2 className="mt-[40px]">All Movies</h2>
-            {
-              isLoading ? 
-                <Spinner/>
-              : 
-                (
-                  <ul>
-                    {
-                      moviesList.map((movie)=> (
-                        <MovieCard  key={movie.id} movie={movie}/>
-                      ))
-                    }
-                  </ul>
-                )
-            }
+          {isLoading ? (
+            <Spinner />
+          ) : (
+            <ul>
+              {moviesList.map((movie) => (
+                <MovieCard key={movie.id} movie={movie} />
+              ))}
+            </ul>
+          )}
 
-
-          {errorMessage && <p className="text-red-500">{errorMessage}</p> }
+          {errorMessage && <p className="text-red-500">{errorMessage}</p>}
         </section>
       </div>
     </main>
